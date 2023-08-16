@@ -1,0 +1,75 @@
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model 16ms
+    create-variant-model 13ms
+    create-ARM64_V8A-model 10ms
+    [gap of 17ms]
+    create-module-model 20ms
+    create-variant-model 15ms
+    [gap of 35ms]
+  create-initial-cxx-model completed in 142ms
+create_cxx_tasks completed in 146ms
+
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model
+      [gap of 15ms]
+      create-cmake-model 12ms
+      [gap of 26ms]
+    create-module-model completed in 53ms
+    create-variant-model 16ms
+    [gap of 30ms]
+    create-X86_64-model 11ms
+    create-module-model 24ms
+    create-variant-model 11ms
+    create-ARMEABI_V7A-model 10ms
+    create-ARM64_V8A-model 11ms
+    create-X86-model 10ms
+    create-X86_64-model 10ms
+  create-initial-cxx-model completed in 206ms
+create_cxx_tasks completed in 210ms
+
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model 13ms
+    create-variant-model 11ms
+    [gap of 25ms]
+    create-module-model 17ms
+    create-variant-model 10ms
+    [gap of 30ms]
+  create-initial-cxx-model completed in 112ms
+create_cxx_tasks completed in 115ms
+
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model 20ms
+    create-variant-model 10ms
+    [gap of 29ms]
+    create-ARMEABI_V7A-model 11ms
+    create-ARM64_V8A-model 11ms
+    create-X86-model 11ms
+    create-X86_64-model 12ms
+    create-module-model 22ms
+    create-variant-model 14ms
+    [gap of 20ms]
+    create-X86-model 10ms
+    create-X86_64-model 11ms
+  create-initial-cxx-model completed in 199ms
+create_cxx_tasks completed in 203ms
+
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model 16ms
+    create-variant-model 10ms
+    [gap of 27ms]
+    create-module-model 16ms
+    create-variant-model 10ms
+    [gap of 24ms]
+  create-initial-cxx-model completed in 109ms
+create_cxx_tasks completed in 112ms
+
