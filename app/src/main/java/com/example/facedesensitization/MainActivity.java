@@ -69,36 +69,6 @@ public class MainActivity extends AppCompatActivity {
         if (true == mCameraCaptureThread.init()) {
             mCameraCaptureThread.start();
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    if (false == mQueue.isEmpty()) {
-                        Log.d(TAG, "LAILE");
-                        byte[] data = mQueue.poll();
-                        Bitmap bitmap = YuvUtil.spToBitmap(data, 1920, 1080, 0, 1);
-                        getFaceRectangle(bitmap);
-                        //mImageView.setImageBitmap(bitmap);
-                    }
-                }
-            }
-        });
-        /*int i = 0;
-        while (true) {
-        byte[] data = mQueue.poll();
-        if (data != null) {
-            Log.d(TAG, "LAILE");
-            Bitmap bitmap = YuvUtil.spToBitmap(data, 1920, 1080, 0, 1);
-            mImageView.setImageBitmap(getFaceRectangle(bitmap));
-            mImageView.refreshDrawableState();
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            //return;
-        }}*/
-
     }
     private void initView() {
         mImageView = findViewById(R.id.image);
@@ -209,12 +179,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        byte[] data = mQueue.poll();
-        if (data != null) {
-            Log.d(TAG, "LAILE");
-            Bitmap bitmap = YuvUtil.spToBitmap(data, 1920, 1080, 0, 1);
-            mImageView.setImageBitmap(getFaceRectangle(bitmap));
-        }
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    byte[] data = mQueue.poll();
+                    if (data != null) {
+                        Bitmap bitmap = YuvUtil.spToBitmap(data, 1920, 1080, 0, 1);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImageView.setImageBitmap(getFaceRectangle(bitmap));
+                            }
+                        });
+                    }
+                }
+            }
+        }.start();
     }
     /**
      * A native method that is implemented by the 'facedesensitization' native library,
