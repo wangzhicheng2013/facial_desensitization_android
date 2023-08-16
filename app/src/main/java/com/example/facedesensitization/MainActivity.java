@@ -25,7 +25,6 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.android.Utils;
 import org.opencv.core.Point;
-//import com.tbruyelle.rxpermissions.RxPermissions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -189,7 +188,8 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mImageView.setImageBitmap(getFaceRectangle(bitmap));
+                                mImageView.setImageBitmap(bitmap);
+                                //mImageView.setImageBitmap(getFaceRectangle(bitmap));  // very slow
                             }
                         });
                     }
