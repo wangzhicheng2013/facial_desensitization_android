@@ -27,9 +27,9 @@ public class CameraCaptureThread extends Thread implements StreamCaptureCallback
     }
     @Override
     public void captureCallback(byte[] data) {
-        if (MainActivity.mQueue.size() < MainActivity.QUEUE_SIZE) {
+        if ((MainActivity.mQueue.size() < MainActivity.QUEUE_SIZE)
+                && (MainActivity.CAMERA_TEST == MainActivity.mTestType)) {
             MainActivity.mQueue.offer(data);
-            //Log.d(TAG, "offer to the queue!");
         }
         else {
             Log.d(TAG, "queue is full!");

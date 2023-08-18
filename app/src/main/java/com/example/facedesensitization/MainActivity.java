@@ -13,38 +13,33 @@ import android.os.Bundle;
 import android.view.View;
 import android.content.Context;
 import com.example.facedesensitization.databinding.ActivityMainBinding;
-
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.*;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.android.Utils;
-import org.opencv.core.Point;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import android.util.Log;
-
+import android.graphics.BitmapFactory;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private ImageView mImageView;
     private ImageView mQuitButton;
+    private RadioButton mCameraTestButton;
+    private RadioButton mPictureTestButton;
+    private Button mFaceCheckButton;
     private CameraCaptureThread mCameraCaptureThread;
     public static ConcurrentLinkedDeque<byte[]> mQueue = new ConcurrentLinkedDeque<byte[]>();
     public static final int QUEUE_SIZE = 3;
-    private CascadeClassifier mClassifier;
+    public static final int CAMERA_TEST = 0;
+    public static final int PICTURE_TEST = 1;
+    public static int mTestType = -1;
+    private boolean mFaceCheckEnabled = true;
     // Used to load the 'facedesensitization' library on application startup.
     static {
         System.loadLibrary("facedesensitization");
@@ -61,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         if (false == checkPermissions()) {
             return;
         }
-        if ((false == initLoadOpenCV()) || (false == initClassifier())) {
+        if (false == OpenCVInstance.getInstance().initInstance(this)) {
             return;
         }
         mCameraCaptureThread = new CameraCaptureThread(this);
@@ -81,71 +76,80 @@ public class MainActivity extends AppCompatActivity {
                 System.exit(0);
             }
         });
-    }
-    public boolean initLoadOpenCV() {
-        boolean success = OpenCVLoader.initDebug();
-        if (true == success) {
-            Log.d(TAG, "initLoadOpenCV: openCV load success");
-            return true;
-        } else {
-            Log.e(TAG, "initLoadOpenCV: openCV load failed");
-            return false;
-        }
-    }
-    public boolean initClassifier() {
-        try {
-            // 读取存放在raw的文件
-            InputStream is = getResources()
-                    .openRawResource(R.raw.lbpcascade_frontalface_improved);
-            File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-            File cascadeFile = new File(cascadeDir,"lbpcascade_frontalface_improved.xml");
-            FileOutputStream os = new FileOutputStream(cascadeFile);
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while((bytesRead = is.read(buffer))!=-1){
-                os.write(buffer,0,bytesRead);
+        mCameraTestButton = findViewById(R.id.camera_test);
+        mPictureTestButton = findViewById(R.id.picture_test);
+        mFaceCheckButton = findViewById(R.id.face_btn);
+        mCameraTestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (PICTURE_TEST == mTestType) {
+                    mCameraTestButton.setChecked(false);
+                    Toast.makeText(getApplicationContext(), "正在进行图片测试", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                mTestType = CAMERA_TEST;
+                mPictureTestButton.setChecked(false);
             }
-            is.close();
-            os.close();
-            // 通过classifier来操作人脸检测， 在外部定义一个CascadeClassifier classifier，做全局变量使用
-            mClassifier = new CascadeClassifier(cascadeFile.getAbsolutePath());
-            cascadeFile.delete();
-            cascadeDir.delete();
-            return true;
-        } catch (Exception e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-        return false;
-    }
-    public Bitmap getFaceRectangle(Bitmap bitmap) {
-        Mat mat = new Mat();
-        Mat matdst = new Mat();
-        Utils.bitmapToMat(bitmap, mat);
-        // 把当前数据复制一份给matdst
-        mat.copyTo(matdst);
-        // 1.把图片转为灰度图 BGR2GRAY，注意是BGR
-        Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2GRAY);
-        // 2.定义MatOfRect用于接收人脸位置
-        MatOfRect faces = new MatOfRect();
-        // 3.开始人脸检测，把检测到的人脸数据存放在faces中
-        mClassifier.detectMultiScale(mat, faces, 1.05, 3, 0, new Size(30, 30), new Size());
-        List<Rect> faceList = faces.toList();
-        Log.d(TAG, "face num:" + faceList.size());
-        // 4.判断是否存在人脸
-        if (faceList.size() > 0) {
-            for (Rect rect : faceList) {
-                // 5.根据得到的人脸位置绘制矩形框
-                // rect.tl() 左上角
-                // rect.br() 右下角
-                Imgproc.rectangle(matdst, rect.tl(), rect.br(), new Scalar(255, 0, 0,255), 4);
+        });
+        mPictureTestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mTestType = PICTURE_TEST;
+                mCameraTestButton.setChecked(false);
+                testPictureFace();
             }
-        }
-        Bitmap resultBitmap = Bitmap.createBitmap(matdst.width(), matdst.height(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(matdst, resultBitmap);
-        mat.release();
-        matdst.release();
-        return resultBitmap;
+        });
+        mFaceCheckButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (true == mFaceCheckEnabled) {
+                    mFaceCheckEnabled = false;
+                    mFaceCheckButton.setText("开启人脸检测");
+                }
+                else {
+                    mFaceCheckEnabled = true;
+                    mFaceCheckButton.setText("关闭人脸检测");
+                }
+            }
+        });
+    }
+    private void testPictureFace() {
+        final int []faces = {
+            R.drawable.face_detect_0,
+                    R.drawable.face_detect_1, R.drawable.face_detect_2, R.drawable.face_detect_3,
+                    R.drawable.face_detect_4, R.drawable.face_detect_5, R.drawable.face_detect_6,
+                    R.drawable.face_detect_7, R.drawable.face_detect_8, R.drawable.face_detect_9
+        };
+        new Thread() {
+            @Override
+            public void run() {
+                for (int i = 0;i < faces.length;i++) {
+                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), faces[i]);
+                    if (null == bitmap) {
+                        Log.e(TAG, "get null bitmap!");
+                        continue;
+                    }
+                    synchronized (MainActivity.class) {
+                        Bitmap newbitmap = OpenCVInstance.getInstance().getFaceRectangle(bitmap, mFaceCheckEnabled);
+                        // must start a UI thread to display
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (PICTURE_TEST == mTestType) {
+                                    mImageView.setImageBitmap(newbitmap);
+                                }
+                            }
+                        });
+                    }
+                    try {
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                    }
+                }
+                mTestType = -1;
+            }
+        }.start();
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestCameraPermission() {
@@ -176,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     @Override
-    protected void onResume() {
+    protected void onStart() {
         super.onResume();
         new Thread() {
             @Override
@@ -184,14 +188,27 @@ public class MainActivity extends AppCompatActivity {
                 while (true) {
                     byte[] data = mQueue.poll();
                     if (data != null) {
-                        Bitmap bitmap = YuvUtil.spToBitmap(data, 1920, 1080, 0, 1);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mImageView.setImageBitmap(bitmap);
-                                //mImageView.setImageBitmap(getFaceRectangle(bitmap));  // very slow
-                            }
-                        });
+                        Bitmap bitmap = YuvUtil.spToBitmap(data, CameraCaptureThread.CAMERA_WIDTH, CameraCaptureThread.CAMERA_HEIGHT, 0, 1);    // NV12
+                        synchronized (MainActivity.class) {
+                            Bitmap newbitmap = OpenCVInstance.getInstance().getFaceRectangle(bitmap, mFaceCheckEnabled);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (CAMERA_TEST == mTestType) {
+                                        mImageView.setImageBitmap(newbitmap);  // very slow
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        try {
+                            Thread.sleep(1000);
+                        }
+                        catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

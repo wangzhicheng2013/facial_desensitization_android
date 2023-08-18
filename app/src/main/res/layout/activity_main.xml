@@ -13,13 +13,36 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/quit_btn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+        <RadioButton
+            android:id="@+id/camera_test"
+            android:layout_width="110dp"
+            android:layout_height="100dp"
             android:layout_marginLeft="15dp"
             android:layout_marginTop="15dp"
-            android:foregroundGravity="left"
+            android:layout_alignParentLeft="true"
+            android:text="摄像头测试"/>
+        <RadioButton
+            android:id="@+id/picture_test"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginLeft="120dp"
+            android:layout_marginTop="15dp"
+            android:text="图片测试" />
+
+        <ImageView
+            android:id="@+id/quit_btn"
+            android:layout_marginTop="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
             app:srcCompat="@mipmap/quit_pic" />
+
+        <Button
+            android:id="@+id/face_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关闭人脸检测" />
     </RelativeLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
