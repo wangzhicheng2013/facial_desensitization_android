@@ -130,7 +130,10 @@ public class MainActivity extends AppCompatActivity {
                         continue;
                     }
                     synchronized (MainActivity.class) {
+                        long curTimeMillis = System.currentTimeMillis();
                         Bitmap newbitmap = OpenCVInstance.getInstance().getFaceRectangle(bitmap, mFaceCheckEnabled);
+                        long endTimeMillis = System.currentTimeMillis();
+                        Log.d(TAG, "face detect elapse ms:" + (endTimeMillis - curTimeMillis));
                         // must start a UI thread to display
                         runOnUiThread(new Runnable() {
                             @Override
@@ -190,7 +193,10 @@ public class MainActivity extends AppCompatActivity {
                     if (data != null) {
                         Bitmap bitmap = YuvUtil.spToBitmap(data, CameraCaptureThread.CAMERA_WIDTH, CameraCaptureThread.CAMERA_HEIGHT, 0, 1);    // NV12
                         synchronized (MainActivity.class) {
+                            long curTimeMillis = System.currentTimeMillis();
                             Bitmap newbitmap = OpenCVInstance.getInstance().getFaceRectangle(bitmap, mFaceCheckEnabled);
+                            long endTimeMillis = System.currentTimeMillis();
+                            Log.d(TAG, "face detect from camera elapse ms:" + (endTimeMillis - curTimeMillis));
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
